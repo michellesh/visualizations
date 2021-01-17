@@ -3,6 +3,11 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import styled from 'styled-components';
 
+import Home from './Home';
+
+const About = () => <div>about</div>;
+const Projects = () => <div>projects</div>;
+
 const Container = styled.div`
   text-align: center;
 `;
@@ -24,9 +29,5 @@ const App = () => (
     </Router>
   </Container>
 );
-
-const Home = () => <div>hi!</div>;
-const About = () => <div>about</div>;
-const Projects = () => <div>projects</div>;
 
 export default App;

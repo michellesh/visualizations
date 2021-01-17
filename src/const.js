@@ -1,4 +1,13 @@
-export const staticNodesHello = [
+export const DARK_PURPLE = '#691CBA';
+export const LIGHT_PURPLE = '#D9C7ED';
+export const DARK_BLUE = '#075EAA';
+export const LIGHT_BLUE = '#4FD4F3';
+export const DARK_GREEN = '#398335';
+export const LIGHT_GREEN = '#A8D899';
+export const DARK_COLORS = [DARK_BLUE, DARK_GREEN, DARK_PURPLE];
+export const LIGHT_COLORS = [LIGHT_BLUE, LIGHT_GREEN, LIGHT_PURPLE];
+
+export const HELLO_NODES = [
   { x: 427, y: 149 },
   { x: 427, y: 162 },
   { x: 427, y: 173 },
@@ -89,7 +98,7 @@ export const staticNodesHello = [
   { x: 843, y: 196 },
   { x: 844, y: 185 }
 ];
-export const staticNodesMichelle = [
+export const MICHELLE_NODES = [
   { x: 0, y: 127 },
   { x: 2, y: 115 },
   { x: 5, y: 101 },

@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import * as d3 from 'd3';
 
 import { DARK_BLUE, LIGHT_GREEN, HELLO_NODES as staticNodes } from './const';
-import { useWindowSize } from './hooks';
 
-const WIDTH = 1000;
-const HEIGHT = 350;
+import FullScreenContext from './FullScreenContext';
+
 const SCALE = 1;
 const TOP = 150;
 const MIN_RADIUS = 3;
@@ -35,7 +34,7 @@ const onPointerMove = event => {
 };
 
 const forces = {
-  center: ({ width = WIDTH } = {}) => d3.forceCenter(width / (2 * SCALE), TOP),
+  center: ({ width = 0 } = {}) => d3.forceCenter(width / (2 * SCALE), TOP),
   charge: ({ strength = -15 } = {}) =>
     d3.forceManyBody().strength(d => (d.isPointer ? strength : 0)),
   collide: () => d3.forceCollide().radius(d => d.r / 2),
@@ -89,27 +88,14 @@ const startForceSimulation = context => {
     .on('pointerup', () => forceSimulation.force('charge', forces.charge()));
 };
 
-const Viz = () => {
-  const [context, setContext] = useState();
-  const [width, height] = useWindowSize([WIDTH, HEIGHT]);
+const onWindowResize = width =>
+  forceSimulation.force('center', forces.center({ width }));
 
-  const canvasRef = useCallback(node => {
-    if (node !== null) {
-      setContext(node.getContext('2d'));
-    }
-  }, []);
-
-  useEffect(() => forceSimulation.force('center', forces.center({ width })), [
-    width
-  ]);
-
-  useEffect(() => {
-    if (context) {
-      startForceSimulation(context);
-    }
-  }, [context]);
-
-  return <canvas width={width} height={height} ref={canvasRef}></canvas>;
-};
+const Viz = () => (
+  <FullScreenContext
+    draw={startForceSimulation}
+    onWindowResize={onWindowResize}
+  />
+);
 
 export default Viz;

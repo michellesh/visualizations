@@ -4,9 +4,9 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import styled from 'styled-components';
 
 import Home from './Home';
+import Network from './Network';
 
 const About = () => <div>about</div>;
-const Projects = () => <div>projects</div>;
 
 const Container = styled.div`
   text-align: center;
@@ -19,8 +19,8 @@ const App = () => (
         <Route path="/about">
           <About />
         </Route>
-        <Route path="/projects">
-          <Projects />
+        <Route path="/network">
+          <Network />
         </Route>
         <Route path="/">
           <Home />

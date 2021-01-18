@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 
 import { DARK_BLUE, LIGHT_GREEN, HELLO_NODES as staticNodes } from './const';
+import { useWindowSize } from './hooks';
 
 const WIDTH = 1000;
 const HEIGHT = 350;
@@ -10,7 +11,7 @@ const TOP = 150;
 const MIN_RADIUS = 3;
 const MAX_RADIUS = 5;
 const NUM_NODES = staticNodes.length * 6;
-const unscaled = x => x * (1 / SCALE);
+const unscaled = x => x / SCALE;
 
 const colorScale = d3
   .scaleLinear()
@@ -18,10 +19,10 @@ const colorScale = d3
   .range([DARK_BLUE, LIGHT_GREEN]);
 
 const getStaticNode = i => staticNodes[Math.floor(i % staticNodes.length)];
-const nodes = d3.range(NUM_NODES).map(n => ({
+const nodes = d3.range(NUM_NODES).map(i => ({
   c: colorScale(Math.random() * NUM_NODES),
   r: MIN_RADIUS + Math.random() * MAX_RADIUS,
-  staticNode: getStaticNode(n),
+  staticNode: getStaticNode(i),
   x: 0,
   y: 0
 }));
@@ -34,7 +35,7 @@ const onPointerMove = event => {
 };
 
 const forces = {
-  center: () => d3.forceCenter(WIDTH / (2 * SCALE), TOP),
+  center: ({ width = WIDTH } = {}) => d3.forceCenter(width / (2 * SCALE), TOP),
   charge: ({ strength = -15 } = {}) =>
     d3.forceManyBody().strength(d => (d.isPointer ? strength : 0)),
   collide: () => d3.forceCollide().radius(d => d.r / 2),
@@ -50,9 +51,24 @@ const forces = {
       .y(d => (d.isPointer ? 0 : d.staticNode.y))
 };
 
+const forceSimulation = Object.keys(forces).reduce(
+  (simulation, f) => simulation.force(f, forces[f]()),
+  d3
+    .forceSimulation([pointerNode, ...nodes])
+    .alphaTarget(0.3)
+    .velocityDecay(0.1)
+);
+
+const getWidth = context => context.canvas.getBoundingClientRect().width;
+const getHeight = context => context.canvas.getBoundingClientRect().height;
 const onTick = context => () => {
-  context.clearRect(0, 0, unscaled(WIDTH), unscaled(HEIGHT));
-  nodes.forEach((node, i) => {
+  context.clearRect(
+    0,
+    0,
+    unscaled(getWidth(context)),
+    unscaled(getHeight(context))
+  );
+  nodes.forEach(node => {
     context.beginPath();
     context.moveTo(node.x + node.r, node.y);
     context.arc(node.x, node.y, node.r, 0, Math.PI);
@@ -61,14 +77,6 @@ const onTick = context => () => {
     context.fill();
   });
 };
-
-const forceSimulation = Object.keys(forces).reduce(
-  (simulation, f) => simulation.force(f, forces[f]()),
-  d3
-    .forceSimulation([pointerNode, ...nodes])
-    .alphaTarget(0.3)
-    .velocityDecay(0.1)
-);
 
 const startForceSimulation = context => {
   context.scale(SCALE, SCALE);
@@ -83,6 +91,7 @@ const startForceSimulation = context => {
 
 const Viz = () => {
   const [context, setContext] = useState();
+  const [width, height] = useWindowSize([WIDTH, HEIGHT]);
 
   const canvasRef = useCallback(node => {
     if (node !== null) {
@@ -90,13 +99,17 @@ const Viz = () => {
     }
   }, []);
 
+  useEffect(() => forceSimulation.force('center', forces.center({ width })), [
+    width
+  ]);
+
   useEffect(() => {
     if (context) {
       startForceSimulation(context);
     }
   }, [context]);
 
-  return <canvas width={WIDTH} height={HEIGHT} ref={canvasRef}></canvas>;
+  return <canvas width={width} height={height} ref={canvasRef}></canvas>;
 };
 
 export default Viz;

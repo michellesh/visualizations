@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 
 export const useWindowSize = (defaultSize = [0, 0]) => {
@@ -12,4 +12,18 @@ export const useWindowSize = (defaultSize = [0, 0]) => {
   }, []);
 
   return size;
+};
+
+export const useCanvas = () => {
+  const canvasRef = useRef(null);
+  const [context, setContext] = useState();
+
+  useEffect(() => {
+    const node = canvasRef.current;
+    if (node) {
+      setContext(node.getContext('2d'));
+    }
+  });
+
+  return [canvasRef, context];
 };

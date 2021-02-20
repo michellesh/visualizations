@@ -24,7 +24,7 @@ const colorScale = d3
   .domain([0, NUM_NODES])
   .range([LIGHT_BLUE, 'white']);
 
-const strokeScale = d3.scaleLinear().domain([0, 300]).range([1, 0]).clamp(true);
+const strokeScale = d3.scaleLinear().domain([0, 500]).range([1, 0]).clamp(true);
 
 const randomChoice = arr => get(arr, Math.floor(Math.random() * arr.length));
 
@@ -42,12 +42,14 @@ const draw = (svg, width, height) => {
       .attr('r', r)
       .attr('fill', color);
 
-  const drawLine = (p1, p2) =>
-    svg.append('line')
+  const drawLine = (p1, p2, color = 'white') =>
+    svg
+      .append('line')
       .attr('x1', p1.x)
       .attr('y1', p1.y)
       .attr('x2', p2.x)
-      .attr('y2', p2.y);
+      .attr('y2', p2.y)
+      .attr('stroke', color);
 
   const getEdgeCoords = edge =>
     get(
@@ -60,10 +62,8 @@ const draw = (svg, width, height) => {
       edge
     );
 
-  const getCoords = c = { x: c.attr('cx'), y: c.attr('cy') };
 
   const Node = () => {
-    console.log('im a node');
 
     const edge1 = randomChoice(EDGES);
     const edge2 = randomChoice(EDGES.filter(e => e !== edge1));
@@ -72,11 +72,15 @@ const draw = (svg, width, height) => {
     const dest = getEdgeCoords(edge2);
     const source = getEdgeCoords(edge1);
     const circle = drawCircle(source);
+    const dist = distance(source, dest);
+    const scaleX = d3.scaleLinear().domain([0, dist]).range([source.x, dest.x]);
+    const scaleY = d3.scaleLinear().domain([0, dist]).range([source.y, dest.y]);
+    const coords = () => ({ x: circle.attr('cx'), y: circle.attr('cy') });
 
     // draw the circle and animate toward destination
     circle
       .transition()
-      .duration(distance(source, dest) * 10) //30)
+      .duration(dist * 10) //30)
       .ease(d3.easeLinear)
       .attr('cx', dest.x)
       .attr('cy', dest.y)
@@ -87,29 +91,54 @@ const draw = (svg, width, height) => {
 
     // draw all the lines between this node and other nodes
     nodes.forEach(node => {
-      // TODO copying createConnections
-      const coords = getCoords(circle)
-      const nodeCoords = getCoords(node.circle)
-      const line = drawLine(nodeCoords, coords)
-      line.transition()
-        .duration(duration * 30)
-        .ease(d3.easeLinear)
-        .attr('x1', endx1)
-        .attr('y1', endy1)
-        .attr('x2', endx2)
-        .attr('y2', endy2)
-        .attrTween('stroke-width', () => {
-          return () => strokeScale(distance(coords, nodeCoords))
-        })
-        .remove();
-    })
+      const line = drawLine(coords(), node.coords());
+      const remainingDist = distance(node.coords(), node.dest);
+      const progress = node.dist - remainingDist;
 
-    return { id, source, dest, circle };
+      const { duration, x1, y1, x2, y2 } =
+        dist < remainingDist
+          ? {
+              duration: dist,
+              x1: dest.x,
+              y1: dest.y,
+              x2: node.scaleX(dist + progress),
+              y2: node.scaleY(dist + progress)
+            }
+          : {
+              duration: remainingDist,
+              x1: scaleX(remainingDist),
+              y1: scaleY(remainingDist),
+              x2: node.dest.x,
+              y2: node.dest.y
+            };
+
+      line
+        .transition()
+        .duration(duration * 10)
+        .ease(d3.easeLinear)
+        .attr('x1', x1)
+        .attr('y1', y1)
+        .attr('x2', x2)
+        .attr('y2', y2)
+        .attrTween('stroke-width', () => () =>
+          strokeScale(distance(coords(), node.coords()))
+        )
+        .remove();
+    });
+
+    return {
+      circle,
+      coords,
+      dest,
+      dist,
+      id,
+      scaleX,
+      scaleY,
+      source
+    };
   };
 
   d3.range(NUM_NODES).forEach(() => nodes.push(Node()));
-
-  console.log('nodes', nodes);
 };
 
 const NetworkSvg = () => {

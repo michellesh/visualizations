@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { DARK_BLUE, LIGHT_GREEN, HELLO_NODES as staticNodes } from './const';
 
 import FullScreenContext from './FullScreenContext';
+import { getCanvasDimensions } from './utils';
 
 const SCALE = 1;
 const TOP = 150;
@@ -58,15 +59,9 @@ const forceSimulation = Object.keys(forces).reduce(
     .velocityDecay(0.1)
 );
 
-const getWidth = context => context.canvas.getBoundingClientRect().width;
-const getHeight = context => context.canvas.getBoundingClientRect().height;
 const onTick = context => () => {
-  context.clearRect(
-    0,
-    0,
-    unscaled(getWidth(context)),
-    unscaled(getHeight(context))
-  );
+  const { width, height } = getCanvasDimensions(context);
+  context.clearRect(0, 0, unscaled(width), unscaled(height));
   nodes.forEach(node => {
     context.beginPath();
     context.moveTo(node.x + node.r, node.y);

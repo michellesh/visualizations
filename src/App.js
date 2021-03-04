@@ -5,6 +5,8 @@ import styled from 'styled-components';
 
 import Home from './Home';
 import Network from './Network';
+import Dance from './Dance';
+import DanceDance from './DanceDance';
 
 const About = () => <div>about</div>;
 
@@ -18,6 +20,12 @@ const App = () => (
       <Switch>
         <Route path="/about">
           <About />
+        </Route>
+        <Route path="/dance">
+          <Dance />
+        </Route>
+        <Route path="/dancedance">
+          <DanceDance />
         </Route>
         <Route path="/network">
           <Network />

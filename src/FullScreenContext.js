@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { func } from 'prop-types';
+import { func, node } from 'prop-types';
 import { noop } from 'lodash';
 
 import { useWindowSize } from './hooks';
 
-const Context = ({ draw, onWindowResize }) => {
+const FullScreenContext = ({ CanvasComponent, draw, onWindowResize }) => {
   const [context, setContext] = useState();
   const [width, height] = useWindowSize();
 
@@ -26,16 +26,18 @@ const Context = ({ draw, onWindowResize }) => {
     }
   }, [context]);
 
-  return <canvas width={width} height={height} ref={canvasRef}></canvas>;
+  return <CanvasComponent width={width} height={height} ref={canvasRef} />;
 };
 
-Context.propTypes = {
+FullScreenContext.propTypes = {
+  CanvasComponent: node,
   draw: func.isRequired,
   onWindowResize: func
 };
 
-Context.defaultProps = {
+FullScreenContext.defaultProps = {
+  CanvasComponent: 'canvas',
   draw: noop
 };
 
-export default Context;
+export default FullScreenContext;

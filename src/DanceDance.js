@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { isEqual, reverse } from 'lodash';
 window.d3 = d3;
 
+import { ripple } from './animations';
 import { useCanvas } from './hooks';
 import {
   angleBetween,
@@ -64,15 +65,22 @@ const Ellipse = (
 };
 
 const LED = config => {
-  const defaults = { radius: 1, startAngle: 0, endAngle: 2 * Math.PI };
+  const defaults = {
+    color: LED_COLOR,
+    endAngle: 2 * Math.PI,
+    radius: 1,
+    startAngle: 0
+  };
   const _led = { ...defaults, ...config };
   return Object.freeze({
     ..._led,
+    color: color => LED({ ..._led, color }),
     r: _led.radius,
     radius: radius => LED({ ..._led, radius }),
+    resetColor: () => LED({ ..._led, color: defaults.color }),
     resetRadius: () => LED({ ..._led, radius: defaults.radius }),
-    draw: (context, color = LED_COLOR) => {
-      const { x, y, radius, startAngle, endAngle } = _led;
+    draw: context => {
+      const { x, y, color, radius, startAngle, endAngle } = _led;
       context.beginPath();
       context.arc(x, y, radius, startAngle, endAngle);
       context.fillStyle = color;
@@ -164,44 +172,17 @@ const SAILS = [
 const SAIL_STRANDS = SAILS.map(sail => sail.getLEDs().map(leds => leds));
 const STRANDS = SAIL_STRANDS.flatMap(sailStrand => sailStrand);
 
-const show = (context, strands) => {
-  context.clearRect(0, 0, WIDTH, HEIGHT);
-  strands.forEach(leds => leds.forEach(led => led.draw(context)));
-};
-
-const draw = context => {
-  context.clearRect(0, 0, WIDTH, HEIGHT);
-
-  const maxStrandLength = Math.max(...STRANDS.map(strand => strand.length));
-  let currentStrand = 0;
-  const anim = () => {
-    //SAILS.forEach(sail => sail.draw(context));
-    STRANDS.forEach((strand, i) => {
-      if (currentStrand < strand.length) {
-        strand[currentStrand] = strand[currentStrand].radius(3);
-      }
-      if (currentStrand > 0 && currentStrand - 1 < strand.length) {
-        strand[currentStrand - 1] = strand[currentStrand - 1].radius(1);
-      }
-    });
-    show(context, STRANDS);
-    currentStrand = currentStrand === maxStrandLength ? 0 : currentStrand + 1;
-    window.requestAnimationFrame(anim);
-  };
-
-  window.requestAnimationFrame(anim);
-};
-
-const Network = () => {
+const DanceDance = () => {
   const [canvasRef, context] = useCanvas();
 
   useEffect(() => {
     if (context) {
-      draw(context);
+      //SAILS.forEach(sail => sail.draw(context));
+      ripple(context, STRANDS);
     }
   }, [context]);
 
   return <Canvas ref={canvasRef} width={WIDTH} height={HEIGHT} />;
 };
 
-export default Network;
+export default DanceDance;
